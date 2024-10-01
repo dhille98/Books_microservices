@@ -16,20 +16,14 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve the app with a lightweight environment
-FROM node:18-alpine AS production
+# Stage 2: Serve the app with Nginx
+FROM nginx:alpine AS production
 
-# Install a simple HTTP server to serve static content
-RUN npm install -g serve
+# Copy the build output from the build stage to Nginx's HTML folder
+COPY --from=build /app/build /usr/share/nginx/html
 
-# Set the working directory
-WORKDIR /app
+# Expose port 80 to the outside world
+EXPOSE 80
 
-# Copy the build output from the build stage
-COPY --from=build /app/build ./build
-
-# Expose port 3000 to the outside world
-EXPOSE 3000
-
-# Start the HTTP server to serve the static files
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Start Nginx server
+CMD ["nginx", "-g", "daemon off;"]
